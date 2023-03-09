@@ -1,0 +1,113 @@
+en
+conf t
+
+!--------------------------------------------
+! configuration de base : R3-Thierry
+!--------------------------------------------
+hostname R3-Thie
+banner motd #Bonjour#
+
+! ici attention au ctrl+c
+
+no ip domain lookup
+ip domain-name labo-routage.com
+crypto key generate rsa
+1024
+
+! ici attention au ctrl+v
+
+no ip domain-lookup
+enable password class
+no service password-encryption
+
+username admin privilege 15 password 0 cisco
+
+security password min-length 5
+
+line console 0
+	password  class
+	login
+	exec-timeout 5
+exit
+
+line vty 0 4
+	transport input ssh
+	login local
+	exec-timeout 5
+exit
+
+!--------------------------------------------
+! Interface Configuration
+!--------------------------------------------
+
+int FastEthernet 0/1
+	Description Link to R2
+	ip address 10.10.23.2 255.255.255.252
+	ip ospf netowrk point-to-point 
+	no shut
+
+int FastEthernet 0/0
+	Description Link to R1
+	ip address 10.10.13.2 255.255.255.252
+	ip ospf netowrk point-to-point 
+	no shut
+
+int LoopBack 0
+	Description Link to WAN
+	ip address 209.165.200.225 255.255.255.224
+	no shut
+
+!--------------------------------------------
+! Routing Rules
+!--------------------------------------------
+
+ip route 172.16.10.0 255.255.255.0 10.10.13.1
+ip route 172.16.10.0 255.255.255.0 10.10.23.1
+ip route 172.16.20.0 255.255.255.0 10.10.13.1
+ip route 172.16.20.0 255.255.255.0 10.10.23.1
+ip route 172.16.30.0 255.255.255.0 10.10.13.1
+ip route 172.16.30.0 255.255.255.0 10.10.23.1
+
+ip route 0.0.0.0 0.0.0.0 loopback 0
+
+!--------------------------------------------
+! configuration DHCPv4
+!--------------------------------------------
+
+ip dhcp excluded-address 172.16.10.251 172.16.10.255
+ip dhcp excluded-address 172.16.10.1 172.16.10.12
+ip dhcp pool VLAN-10
+network 172.16.10.0 255.255.255.0
+default-router 172.16.10.251
+domain-name labo-routage.com
+exit
+
+ip dhcp excluded-address 172.16.20.251 172.16.20.255
+ip dhcp excluded-address 172.16.20.1 172.16.20.12
+ip dhcp pool VLAN-20
+network 172.16.20.0 255.255.255.0
+default-router 172.16.20.251
+domain-name labo-routage.com
+exit
+
+ip dhcp excluded-address 172.16.30.251 172.16.30.255
+ip dhcp excluded-address 172.16.30.1 172.16.30.12
+ip dhcp pool VLAN-30
+network 172.16.30.0 255.255.255.0
+default-router 172.16.30.251
+domain-name labo-routage.com
+exit
+
+!--------------------------------------------
+! OSPF R3 10 ID 3.3.3.3
+!--------------------------------------------
+
+ip route 0.0.0.0 0.0.0.0 loopback 0
+
+router ospf 10
+    router-id 3.3.3.3
+    auto-cost reference-bandwidth 10000
+    network 10.10.13.0 0.0.0.3 area 0
+    network 10.10.23.0 0.0.0.3 area 0
+    default-information originate
+exit

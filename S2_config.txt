@@ -1,0 +1,138 @@
+en
+conf t
+
+!--------------------------------------------
+! configuration de base
+!--------------------------------------------
+
+hostname S2-Thie
+
+banner motd #
+Authorized access only.
+#
+
+enable secret class
+!security password min-length 5
+ip domain-name labo-securite.com
+
+crypto key generate rsa
+1024
+
+no ip domain-lookup
+username admin password admin123
+
+line console 0
+    exec-timeout 0
+    logging synchronous
+    password cisco
+    login
+exit
+
+line vty 0 15
+    exec-timeout 0
+    password cisco
+    login
+exit
+
+line vty 0 4
+    exec-timeout 0
+    password cisco
+    login local
+    transport input ssh
+exit
+
+!--------------------------------------------
+! configuration interface de gestion
+!--------------------------------------------
+vlan 10
+    name R&D
+exit
+
+vlan 20
+    name STAFF
+exit
+
+vlan 30
+    name MAGNT
+exit
+
+vlan 90 
+    name TRASH
+exit
+
+vlan 99
+    name native
+exit
+
+interface range fastEthernet0/1-2
+    switchport access vlan 30
+    Switchport mode trunk
+    Switchport trunk native vlan 99
+    Switchport trunk allowed vlan 10,20,30,90,99
+    no shut
+exit
+
+interface fastEthernet0/5
+    switchport access vlan 30
+    switchport mode trunk 
+    switchport trunk native vlan 99
+    switchport trunk allowed vlan 10,20,30,90,99
+    no shut
+exit
+
+!--------------------------------------------
+! configuration du port sécurity Int 18
+!--------------------------------------------
+interface fastEthernet0/18
+    switchport access vlan 30
+    Switchport mode access
+    no shut
+exit
+
+!--------------------------------------------
+! configuration du port sécurity Int 24
+!--------------------------------------------
+interface fastEthernet0/24
+    switchport access vlan 20
+    Switchport mode access
+    no shut
+exit
+
+interface range fastEthernet 0/2 -4
+    switchport access vlan 90
+    shutdown
+exit
+
+interface range fastEthernet 0/7 - 17
+    switchport access vlan 90
+    shutdown
+exit
+
+interface range fastEthernet 0/19 - 23
+    switchport access vlan 90
+    shutdown
+exit
+
+interface range gigabitEthernet 0/1-2
+    switchport access vlan 90
+    shutdown
+exit
+
+interface vlan 30
+    ip address 172.16.30.2 255.255.255.0
+    no shutdown
+exit
+
+!--------------------------------------------
+! configuration interface de gestion
+! ETHERCHANNEL 
+!--------------------------------------------
+interface range fastethernet 0/1-2
+    shut
+    channel-group 1 mode active
+    exit
+    
+interface port-channel 1
+    switchport mode trunk
+    switchport trunk allowed vlan 10,20,30,99
+exit
