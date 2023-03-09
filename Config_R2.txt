@@ -35,6 +35,14 @@ exit
 !--------------------------------------------
 ! configuration des interfaces
 !--------------------------------------------
+int FastEthernet 0/0
+	Description Link to R3
+	ip address 10.10.23.1 255.255.255.252
+	ip ospf netowrk point-to-point 
+	no shut
+	ip access-group 100 in
+exit
+
 int FastEthernet 0/1 
 	Description trunk link S2
 	standby 1 ip 172.16.10.251
@@ -43,13 +51,7 @@ int FastEthernet 0/1
 	standby 2 ip 172.16.10.252
 	standby 2 priority 100
 	standby 2 preempt
-	no shut
-exit
-
-int FastEthernet 0/0
-	Description Link to R3
-	ip address 10.10.23.1 255.255.255.252
-	ip ospf netowrk point-to-point 
+	ip access-group 100 in
 	no shut
 exit
 
@@ -61,6 +63,7 @@ int FastEthernet 0/1.10
     Standby 1 priority 100
 	standby 1 preempt
 	standby 2 preempt
+	ip access-group 101 in
 	no shut
 exit
 
@@ -72,6 +75,7 @@ int FastEthernet 0/1.20
     Standby 1 priority 100
 	standby 1 preempt
 	standby 2 preempt
+	ip access-group 102 in
 	no shut
 exit
 
@@ -83,14 +87,16 @@ int FastEthernet 0/1.30
     Standby 1 priority 100
 	standby 1 preempt
 	standby 2 preempt
+	ip access-group 103 in
 	no shut
 exit
 
 interface FastEthernet0/1.40
+	description Gateway VLAN 40
 	encapsulation dot1Q 40
 	ip address 172.16.40.252 255.255.255.0
 	standby 1 ip 172.16.40.251
-	standby 1 priority 100
+	Standby 1 priority 100
 	standby 1 preempt
 	ip helper-address 10.10.13.2
 	ip helper-address 10.10.23.2
@@ -122,15 +128,30 @@ exit
 !--------------------------------------------
 ! ACL
 !--------------------------------------------
-access-list 101 permit ip any any
-access-list 102 deny ip 172.16.10.0 0.0.0.255 172.16.20.0 0.0.0.255
-access-list 102 deny ip 172.16.10.0 0.0.0.255 172.16.30.0 0.0.0.255
-access-list 102 permit ip any any
-access-list 103 permit tcp 172.16.99.0 0.0.0.255 any eq telnet
-access-list 104 permit ip 172.16.40.0 0.0.0.255 any
 
-access-list 105 permit ip 172.16.40.0 0.0.0.255 any
-access-list 105 deny ip any 172.16.20.0 0.0.0.255
-access-list 105 deny ip any 172.16.30.0 0.0.0.255
-access-list 105 permit ip any any
+access-list 100 permit ip any any
 
+access-list 101 permit ip 172.16.10.0 0.0.0.255 172.16.20.0 0.0.0.255
+access-list 101 permit ip 172.16.10.0 0.0.0.255 172.16.30.0 0.0.0.255
+access-list 101 deny ip any any
+
+
+access-list 102 permit ip 172.16.20.0 0.0.0.255 172.16.10.0 0.0.0.255
+access-list 102 permit ip 172.16.20.0 0.0.0.255 172.16.30.0 0.0.0.255
+access-list 102 deny ip any any
+
+
+access-list 103 permit ip 172.16.30.0 0.0.0.255 172.16.10.0 0.0.0.255
+access-list 103 permit ip 172.16.30.0 0.0.0.255 172.16.20.0 0.0.0.255
+access-list 103 deny ip any any
+
+
+access-list 105 permit ip 172.16.40.0 0.0.0.255 172.16.10.0 0.0.0.255
+access-list 105 permit ip 172.16.40.0 0.0.0.255 172.16.20.0 0.0.0.255
+access-list 105 permit ip 172.16.40.0 0.0.0.255 172.16.30.0 0.0.0.255
+access-list 105 permit ip 172.16.40.0 0.0.0.255 172.16.90.0 0.0.0.255
+access-list 105 permit ip 172.16.40.0 0.0.0.255 172.16.99.0 0.0.0.255
+access-list 105 deny ip any any
+
+
+access-list 110 deny ip any any
